@@ -1,5 +1,6 @@
 const axios     = require('axios');
 const sportsIds = require('./sports.json');
+const typesIds  = require('./types.json');
 
 const tipsUrl   = 'http://api-tips-staging.bettingexpert.com/v1/tips?pageSize=3';
 const filterUrl = 'http://api-tips-staging.bettingexpert.com/v1/tips/filters?pageSize=3';
@@ -24,23 +25,40 @@ function formatTip(tip, showSport) {
 module.exports = function (session, parameters) {
     let request;
 
-    if (!parameters.sport) {
+    const showSport = !Boolean(parameters.sport);
+
+    if (!parameters.sport && !parameters.date && !parameters.type) {
         request = axios.get(tipsUrl, {
             headers: token
         }).then(res => {
-            const tips = res.data.slice(0, 3).map(tip => formatTip(tip, true));
+            const tips = res.data.slice(0, 3).map(tip => formatTip(tip, showSport));
 
             session.send('Sport Tip List:\n\n' + tips.join('--\n\n'));
         })
     } else {
+        const filters = {};
+
+        if (parameters.sport) {
+            filters.sportId = sportsIds[parameters.sport.toLowerCase()];
+        }
+
+        if (parameters.type) {
+            filters.selectionTypeId = typesIds[parameters.type.toLowerCase()];
+        }
+
+        if (parameters.date) {
+            filters.date = '';
+            console.log('we should set date to ', parameters.date, 'here');
+        }
+
+        console.log(filters);
+
         request = axios.post(filterUrl, {
-            dynamicProperties: {
-                sportId: sportsIds[parameters.sport.toLowerCase()]
-            }
+            dynamicProperties: filters
         }, {
             headers: token
         }).then(res => {
-            const tips = res.data.slice(0, 3).map(tip => formatTip(tip));
+            const tips = res.data.slice(0, 3).map(tip => formatTip(tip, showSport));
 
             session.send('Sport Tip List:\n\n' + tips.join('--\n\n'));
         })

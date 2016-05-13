@@ -10,7 +10,6 @@ module.exports = function (query) {
             const intent_     = topIntent.intent;
             const parameters_ = (topIntent.actions && topIntent.actions[0]) ? topIntent.actions[0].parameters : [];
 
-
             const intent     = intent_.replace(/\s/g, '').toLowerCase();
             const parameters = {};
 
@@ -24,7 +23,8 @@ module.exports = function (query) {
 
             return {
                 intent,
-                parameters
+                parameters,
+                query: res.data.query
             };
         });
 }

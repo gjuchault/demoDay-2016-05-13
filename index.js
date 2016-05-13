@@ -34,7 +34,7 @@ bot.add('/', session => {
 
     dispatchers[program.service](q)
         .then(res => {
-            require(`./actions/${res.intent}`)(session, res.parameters);
+            require(`./actions/${res.intent}`)(session, res.parameters, res.query);
         })
         .catch(err => {
             console.log(err);
@@ -49,5 +49,5 @@ const server = restify.createServer();
 server.post('/api/messages', bot.verifyBotFramework(), bot.listen());
 
 server.listen(process.env.port || 3978, () => {
-    console.log('%s listening to %s', server.name, server.url);
+    console.log('server listening to %s', server.url);
 });

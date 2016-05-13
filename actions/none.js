@@ -1,3 +1,3 @@
-module.exports = function (session) {
-    session.send('Did not understand...');
+module.exports = function (session, _, query) {
+    session.send(`Did not understand "${query}"...`);
 };

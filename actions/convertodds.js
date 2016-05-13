@@ -8,7 +8,7 @@ function toImpliedProbability(type, value) {
     }
 
     if (type === 'decimal' || type === 'decimal odds') {
-        return (1 / nValue * 100) + '%';
+        return `${1 / nValue * 100}%`;
     }
 
     if (type === 'fractional' || type === 'fractional odds') {
@@ -20,7 +20,7 @@ function toImpliedProbability(type, value) {
         const numerator   = splitted[0];
         const denominator = splitted[1];
 
-        return (denominator / (denominator + numerator) * 100) + '%';
+        return `${denominator / (denominator + numerator) * 100}%`;
     }
 
     if (type === 'implied' || type === 'implied probability') {
@@ -59,10 +59,7 @@ module.exports = function (session, parameters) {
     const toType   = parameters['oddsType-to'];
     const value    = parameters.value;
 
-    console.log('convert ' + value + ' from ' + fromType + ' to ' + toType);
-    console.log('implied ' + toImpliedProbability(fromType, value));
-
     const newValue = fromImpliedProbability(toType, toImpliedProbability(fromType, value));
 
-    session.send('Odds converted : ' + newValue);
+    session.send(`Odds converted: ${newValue}`);
 };
