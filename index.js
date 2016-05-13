@@ -17,8 +17,9 @@ bot.add('/', session => {
     axios
         .get(url + msg)
         .then(res => {
-            const intent     = res.data.topScoringIntent.intent;
-            const parameters = res.data.topScoringIntent.actions[0].parameters;
+            const topIntent = res.data.topScoringIntent;
+            const intent     = topIntent.intent;
+            const parameters = (topIntent.actions && topIntent.actions[0]) ? topIntent.actions[0].parameters : [];
 
             dispatcher(session, intent, parameters);
         })
