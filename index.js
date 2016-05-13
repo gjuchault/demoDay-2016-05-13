@@ -1,27 +1,40 @@
 const restify = require('restify');
 const builder = require('botbuilder');
-const axios   = require('axios');
+const program = require('commander');
+const fs      = require('fs');
+const path    = require('path');
 
-const dispatcher = require('./dispatcher');
+const dispatchers = {};
 
-const url = 'https://api.projectoxford.ai/luis/v1/application/preview?id=353981ee-b9a1-4609-aea1-344f82a1516b&subscription-key=47e8be4b76ba41bb8bf61649ff437dad&q=';
+const availableDispatchers = fs
+    .readdirSync(__dirname)
+    .filter(file => file.indexOf('dispatcher') === 0)
+    .map(file => file.slice('dispatcher.'.length, '.js'.length * -1))
+    .map(file => {
+        dispatchers[file] = require(`./dispatcher.${file}.js`);
+
+        return file;
+    })
+
+const dispatcherRegex = new RegExp(`^(${availableDispatchers.join('|')})$`);
+
+program
+    .version('0.0.1')
+    .option('-s --service <service>',
+            `Choose webservice (available: ${availableDispatchers.join(', ')})`,
+            dispatcherRegex,
+            availableDispatchers[0])
+    .parse(process.argv);
 
 // Create bot and add dialogs
 const bot = new builder.BotConnectorBot({ appId: 'bettercollectiveDemoday', appSecret: 'e725d4760e12476f9f89e8aebf5a4671' });
 
 bot.add('/', session => {
-    const msg = encodeURIComponent(session.message.text);
+    const q = encodeURIComponent(session.message.text);
 
-    console.log(msg);
-
-    axios
-        .get(url + msg)
+    dispatchers[program.service](q)
         .then(res => {
-            const topIntent = res.data.topScoringIntent;
-            const intent     = topIntent.intent;
-            const parameters = (topIntent.actions && topIntent.actions[0]) ? topIntent.actions[0].parameters : [];
-
-            dispatcher(session, intent, parameters);
+            require(`./actions/${res.intent}`)(session, res.parameters);
         })
         .catch(err => {
             console.log(err);
