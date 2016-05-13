@@ -4,6 +4,8 @@ const program = require('commander');
 const fs      = require('fs');
 const path    = require('path');
 
+const DEFAULT_DISPATCHER = 'luis';
+
 const dispatchers = {};
 
 const availableDispatchers = fs
@@ -14,7 +16,7 @@ const availableDispatchers = fs
         dispatchers[file] = require(`./dispatcher.${file}.js`);
 
         return file;
-    })
+    });
 
 const dispatcherRegex = new RegExp(`^(${availableDispatchers.join('|')})$`);
 
@@ -23,7 +25,7 @@ program
     .option('-s --service <service>',
             `Choose webservice (available: ${availableDispatchers.join(', ')})`,
             dispatcherRegex,
-            availableDispatchers[0])
+            DEFAULT_DISPATCHER)
     .parse(process.argv);
 
 // Create bot and add dialogs
